@@ -4,7 +4,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.List;
-import java.util.Scanner;
 import model.Produto;
 
 public class CadastroClient {
@@ -23,13 +22,21 @@ public class CadastroClient {
             out = new ObjectOutputStream(socket.getOutputStream());
             in = new ObjectInputStream(socket.getInputStream());
 
-            // 3. Escrever login e senha (de acordo com o banco: por ex., op1/op1)
-            out.writeUTF("op1");
-            out.writeUTF("op1");
+            // 3. Enviar login e senha (como objetos)
+            out.writeObject("op1");
+            out.writeObject("op1");
             out.flush();
+            
+            // 3.1.
+            Object respostaLogin = in.readObject();
+            if (respostaLogin == null) {
+                System.out.println("Login ou senha inv?lidos. Encerrando.");
+             return;
+            }
+            System.out.println("Login aceito.");
 
-            // 4. Enviar comando "L" (listar produtos)
-            out.writeUTF("L");
+            // 4. Enviar comando "L"
+            out.writeObject("L");
             out.flush();
 
             // 5. Receber lista de produtos
@@ -42,8 +49,12 @@ public class CadastroClient {
                     if (item instanceof Produto) {
                         Produto p = (Produto) item;
                         System.out.println(" - " + p.getNome());
+                    } else {
+                        System.out.println("Objeto inv?lido na lista.");
                     }
                 }
+            } else {
+                System.out.println("Resposta n?o ? uma lista.");
             }
 
         } catch (Exception e) {
